@@ -1,38 +1,40 @@
 return function()
-	local Library = {}
+	local base = "https://raw.githubusercontent.com/PapaGubby/sodas-library/main/"
 
-	local function get(url)
-		return game:HttpGet(url)
+	local function get(path)
+		return game:HttpGet(base .. path)
 	end
 
-	local Core = loadstring(get("https://raw.githubusercontent.com/PapaGubby/sodas-library/main/Library/Core/UI.lua"))()
-	local ScriptsFolder = "https://raw.githubusercontent.com/PapaGubby/sodas-library/main/Library/Scripts/"
+	local Core = {}
 
-	Library.Core = Core
-	Library.Scripts = {}
+	Core.Maid = loadstring(get("Library/Core/Maid.lua"))()
+	Core.Signal = loadstring(get("Library/Core/Signal.lua"))()
+	Core.Tween = loadstring(get("Library/Core/Tween.lua"))()
+	Core.Window = loadstring(get("Library/Core/Window.lua"))()
+	Core.UI = loadstring(get("Library/Core/UI.lua"))()
+
+	local ScriptsPath = base .. "Library/Scripts/"
 
 	local function loadScript(name)
-		local source = get(ScriptsFolder .. name .. ".lua")
-		local func = loadstring(source)
-		return func and func()
+		return loadstring(game:HttpGet(ScriptsPath .. name .. ".lua"))()
 	end
 
-	local ui = Core:CreateWindow({
+	local ui = Core.Window.new({
 		Name = "Soda Library",
-		Size = UDim2.new(0, 500, 0, 350)
+		Size = UDim2.new(0, 520, 0, 360)
 	})
 
 	local running = {}
 
 	local function register(name)
-		local scriptModule = loadScript(name)
-		if not scriptModule then return end
+		local script = loadScript(name)
+		if not script then return end
 
-		local page = ui:AddPage(name, scriptModule.Description or "")
+		local page = ui:AddPage(script.Name, script.Description)
 
 		page:AddButton("Run", function()
 			if running[name] then return end
-			running[name] = scriptModule.Run(Core)
+			running[name] = script.Run(Core)
 		end)
 
 		page:AddButton("Stop", function()
@@ -49,5 +51,5 @@ return function()
 	register("ButtonTest")
 	register("ToggleTest")
 
-	return Library
+	return Core
 end
